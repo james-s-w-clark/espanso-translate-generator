@@ -32,7 +32,8 @@ func main() {
 		configLines = append(configLines, pairToEspanso(l2Word, l1Word, l1))
 	}
 
-	writeLines(configLines, "espanso-translate-en-fr.yml")
+	outputName := fmt.Sprintf("espanso-translate-%s-%s.yml", l1, l2)
+	writeLines(configLines, outputName)
 }
 
 func pairToEspanso(sourceWord string, targetWord string, targetLanguage string) string {
