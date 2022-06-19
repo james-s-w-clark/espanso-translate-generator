@@ -16,7 +16,6 @@ func main() {
 	filePath, _ := filepath.Abs("./chinese-english/cedict_ts.u8.txt")
 	l1 := "en"
 	l2 := "zh"
-	delimiter := "/"
 	// ---------------- CONFIG END ----------------
 
 	mostFrequentWords := getNMostFrequentWords(10_000)
@@ -37,38 +36,58 @@ func main() {
 			continue
 		}
 
-		parts := strings.Split(line, delimiter)
-		charsAndPinyin := strings.Split(parts[0], "[") // "\\["
-		chars := strings.Split(charsAndPinyin[0], " ")
-		traditional := chars[0]
-		simplified := chars[1]
-		pinyin := accentPinyinTones(
-			strings.ToLower(
-				strings.ReplaceAll(charsAndPinyin[1], "] ", "")))
-		definition := parts[1]
-
-		if !mostFrequentWords[simplified] {
+		translation := lineToTranslation(line)
+		if !mostFrequentWords[translation.simplified] {
 			continue
 		}
 
-		configLines = append(configLines, chineseToEnglish(traditional, pinyin, definition))
-		if traditional != simplified { // don't write duplicate triggers
-			configLines = append(configLines, chineseToEnglish(simplified, pinyin, definition))
-		}
-
-		// ignore lengthy English definitions (anything with a space) - users may not type long en->zh sentences
-		if strings.Count(definition, " ") < 2 {
-			if traditional == simplified { // small optimisation - but may type extra "s/t". users may dislike behaviour?
-				configLines = append(configLines, englishToChinese(definition, traditional, pinyin, ""))
-			} else {
-				configLines = append(configLines, englishToChinese(definition, traditional, pinyin, "t"))
-				configLines = append(configLines, englishToChinese(definition, simplified, pinyin, "s"))
-			}
-		}
+		newLines := translationToConfigLines(translation)
+		configLines = append(configLines, newLines...)
 	}
 
 	outputName := fmt.Sprintf("espanso-translate-%s-%s.yml", l1, l2)
 	writeLines(configLines, outputName)
+}
+
+type translation struct {
+	traditional string
+	simplified  string
+	pinyin      string
+	definition  string
+}
+
+func translationToConfigLines(t translation) []string {
+	var lines []string
+
+	lines = append(lines, chineseToEnglish(t.traditional, t.pinyin, t.definition))
+	if t.traditional != t.simplified { // don't duplicate triggers (same characters, doesn't affect UX)
+		lines = append(lines, chineseToEnglish(t.simplified, t.pinyin, t.definition))
+	}
+
+	// ignore lengthy English definitions - users won't type long en->zh sentences
+	if strings.Count(t.definition, " ") < 2 {
+		if t.traditional == t.simplified { // small optimisation. users may dislike inconsistency (don't need t/s for this case)
+			lines = append(lines, englishToChinese(t.definition, t.traditional, t.pinyin, ""))
+		} else {
+			lines = append(lines, englishToChinese(t.definition, t.traditional, t.pinyin, "t"))
+			lines = append(lines, englishToChinese(t.definition, t.simplified, t.pinyin, "s"))
+		}
+	}
+	return lines
+}
+
+func lineToTranslation(line string) translation {
+	parts := strings.Split(line, "/")
+	charsAndPinyin := strings.Split(parts[0], "[")
+	chars := strings.Split(charsAndPinyin[0], " ")
+	traditional := chars[0]
+	simplified := chars[1]
+	pinyin := accentPinyinTones(
+		strings.ToLower(
+			strings.ReplaceAll(charsAndPinyin[1], "] ", "")))
+	definition := parts[1]
+
+	return translation{traditional, simplified, pinyin, definition}
 }
 
 func getNMostFrequentWords(count int) map[string]bool {
