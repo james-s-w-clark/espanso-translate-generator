@@ -68,12 +68,7 @@ func translationToConfigLines(t translation) []string {
 
 	// ignore lengthy English definitions - users won't type long en->zh sentences
 	if strings.Count(t.definition, " ") < 2 {
-		if t.traditional == t.simplified { // small optimisation. users may dislike inconsistency (don't need t/s for this case)
-			lines = append(lines, englishToChinese(t.definition, t.traditional, t.pinyin, ""))
-		} else {
-			lines = append(lines, englishToChinese(t.definition, t.traditional, t.pinyin, "t"))
-			lines = append(lines, englishToChinese(t.definition, t.simplified, t.pinyin, "s"))
-		}
+		lines = append(lines, englishToChinese(t.definition, t.simplified, t.traditional, t.pinyin))
 	}
 	return lines
 }
@@ -124,12 +119,18 @@ func chineseToEnglish(character string, pinyin string, definiton string) string 
 		character, pinyin, definiton)
 }
 
-func englishToChinese(definiton string, character string, pinyin string, simpOrTrad string) string {
+func englishToChinese(definition string, simplified string, traditional string, pinyin string) string {
+	if simplified == traditional {
+		traditional = ""
+	} else {
+		simplified += "/"
+	}
+
 	return fmt.Sprintf(
-		"  - trigger: \"%s:zh%s\"\n"+
-			"    replace: \"{%s}(%s)[%s]\"",
-		definiton, simpOrTrad,
-		character, pinyin, definiton)
+		"  - trigger: \"%s:zh\"\n"+
+			"    replace: \"{%s%s}(%s)[%s]\"",
+		definition,
+		simplified, traditional, pinyin, definition)
 }
 
 // writeLines writes the lines to the given file.
