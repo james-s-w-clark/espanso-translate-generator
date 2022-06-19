@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -11,7 +12,7 @@ import (
 func main() {
 	// ---------------- CONFIG START ----------------
 	// https://github.com/pquentin/wiktionary-translations
-	filePath := "frwiktionary-20140612-euradicfmt.txt"
+	filePath, _ := filepath.Abs("./french-english/frwiktionary-20140612-euradicfmt.txt")
 	l1 := "en"
 	l2 := "fr"
 	l1Index := 3
