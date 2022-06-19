@@ -85,7 +85,7 @@ func lineToTranslation(line string) translation {
 	pinyin := accentPinyinTones(
 		strings.ToLower(
 			strings.ReplaceAll(charsAndPinyin[1], "] ", "")))
-	definition := parts[1]
+	definition := strings.ReplaceAll(parts[1], "\"", "'")
 
 	return translation{traditional, simplified, pinyin, definition}
 }
