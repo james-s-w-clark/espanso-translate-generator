@@ -19,6 +19,9 @@ func main() {
 	delimiter := "/"
 	// ---------------- CONFIG END ----------------
 
+	mostFrequentWords := getNMostFrequentWords(10_000)
+	print(mostFrequentWords)
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		println(err)
@@ -44,6 +47,10 @@ func main() {
 				strings.ReplaceAll(charsAndPinyin[1], "] ", "")))
 		definition := parts[1]
 
+		if !mostFrequentWords[simplified] {
+			continue
+		}
+
 		configLines = append(configLines, chineseToEnglish(traditional, pinyin, definition))
 		if traditional != simplified { // don't write duplicate triggers
 			configLines = append(configLines, chineseToEnglish(simplified, pinyin, definition))
@@ -60,6 +67,30 @@ func main() {
 
 	outputName := fmt.Sprintf("espanso-translate-%s-%s.yml", l1, l2)
 	writeLines(configLines, outputName)
+}
+
+func getNMostFrequentWords(count int) map[string]bool {
+	filePath, _ := filepath.Abs("./chinese-english/global_wordfreq.release_UTF-8.txt")
+	file, err := os.Open(filePath)
+	if err != nil {
+		println(err)
+	}
+	defer file.Close()
+
+	index := 0
+	words := make(map[string]bool)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		index++
+		if index > count {
+			break
+		}
+		line := scanner.Text()
+		word := strings.Split(line, "\t")[0]
+		words[word] = true
+	}
+
+	return words
 }
 
 func chineseToEnglish(character string, pinyin string, definiton string) string {
