@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -15,8 +16,6 @@ func main() {
 	filePath, _ := filepath.Abs("./chinese-english/cedict_ts.u8.txt")
 	l1 := "en"
 	l2 := "zh"
-	//l1Index := 3
-	//l2Index := 0
 	delimiter := "/"
 	// ---------------- CONFIG END ----------------
 
@@ -40,8 +39,9 @@ func main() {
 		chars := strings.Split(charsAndPinyin[0], " ")
 		traditional := chars[0]
 		simplified := chars[1]
-		pinyin := strings.ToLower(
-			strings.ReplaceAll(charsAndPinyin[1], "] ", ""))
+		pinyin := accentPinyinTones(
+			strings.ToLower(
+				strings.ReplaceAll(charsAndPinyin[1], "] ", "")))
 		definition := parts[1]
 
 		configLines = append(configLines, chineseToEnglish(traditional, pinyin, definition))
@@ -72,7 +72,7 @@ func chineseToEnglish(character string, pinyin string, definiton string) string 
 
 func englishToChinese(definiton string, character string, pinyin string, simpOrTrad string) string {
 	return fmt.Sprintf(
-		"  - trigger: \"%s:zh-%s\"\n"+
+		"  - trigger: \"%s:zh%s\"\n"+
 			"    replace: \"{%s}(%s)[%s]\"",
 		definiton, simpOrTrad,
 		character, pinyin, definiton)
@@ -92,3 +92,54 @@ func writeLines(lines []string, path string) error {
 	}
 	return w.Flush()
 }
+
+func accentPinyinTones(pinyin string) string {
+	syllables := strings.Split(pinyin, " ")
+	var accented []string
+
+	for _, syllable := range syllables {
+		tone, _ := strconv.ParseInt(syllable[len(syllable)-1:], 0, 32)
+		if tone == 0 {
+			accented = append(accented, syllable) // e.g. syllable is "P", no tone mark
+			continue
+		}
+
+		accented = append(accented, accentSyllable(syllable, tone))
+	}
+
+	return strings.Join(accented, " ")
+}
+
+func accentSyllable(syllable string, tone int64) string {
+	tmp1 := strings.ReplaceAll(syllable, "u:", "ü")
+	tmp2 := strings.ReplaceAll(tmp1, "U:", "Ü")
+	tmp3 := tmp2[:len(tmp2)-1] // we can ignore the number at the end now that we've extracted it
+
+	if strings.Index(syllable, "r") == 0 &&
+		strings.LastIndex(syllable, "r") == 0 {
+		return "er"
+	}
+
+	if strings.Contains(syllable, "iu") {
+		return strings.ReplaceAll(tmp3, "u", toneMap["u"][tone-1])
+	}
+
+	for _, vowel := range vowels {
+		if strings.Contains(syllable, vowel) {
+			return strings.ReplaceAll(tmp3, vowel, toneMap[vowel][tone-1])
+		}
+	}
+
+	return syllable
+}
+
+var toneMap = map[string][]string{
+	"a": {"ā", "á", "ǎ", "à", "a"},
+	"e": {"ē", "é", "ě", "è", "e"},
+	"i": {"ī", "í", "ǐ", "ì", "i"},
+	"o": {"ē", "é", "ě", "è", "e"},
+	"u": {"ū", "ú", "ǔ", "ù", "u"},
+	"ü": {"ǖ", "ǘ", "ǚ", "ǜ", "ü"},
+}
+
+var vowels = []string{"a", "o", "e", "i", "u", "ü"}
