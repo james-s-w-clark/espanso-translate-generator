@@ -36,8 +36,6 @@ func main() {
 			continue
 		}
 
-		//lineToTranslation("桌子 桌子 [zhuo1 zi5] /table/desk/CL:張|张[zhang1],套[tao4]/")
-
 		translation := lineToTranslation(line)
 		if !mostFrequentWords[translation.simplified] {
 			continue
