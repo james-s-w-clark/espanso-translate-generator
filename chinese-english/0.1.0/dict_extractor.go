@@ -59,7 +59,7 @@ func main() {
 		// ignore lengthy English definitions (anything with a space)
 		// it's unlikely users will be typing long definition sentences
 		// TODO optimise and break the trigger pattern a bit? trad/simp same -> match on just :zh ?
-		if !strings.Contains(definition, " ") {
+		if strings.Count(definition, " ") < 2 {
 			configLines = append(configLines, englishToChinese(definition, traditional, pinyin, "t"))
 			configLines = append(configLines, englishToChinese(definition, simplified, pinyin, "s"))
 		}
