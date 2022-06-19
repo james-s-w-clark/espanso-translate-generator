@@ -1,3 +1,9 @@
+# Intro
+For now, this package can only do English -> Chinese. 
+Chinese -> English not working is a [known issue](https://github.com/federico-terzi/espanso/issues/101), so for now we don't generate that.
+
+# Decision log
+
 For Chinese-English bidirectional translation, I made a few **decisions**:
 
 The following notes reference _disk usage_, not memory usage:

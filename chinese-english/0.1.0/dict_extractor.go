@@ -18,7 +18,7 @@ func main() {
 	l2 := "zh"
 	// ---------------- CONFIG END ----------------
 
-	mostFrequentWords := getNMostFrequentWords(10_000)
+	mostFrequentWords := getNMostFrequentWords(100_000)
 	print(mostFrequentWords)
 
 	file, err := os.Open(filePath)
@@ -59,10 +59,11 @@ type translation struct {
 func translationToConfigLines(t translation) []string {
 	var lines []string
 
-	lines = append(lines, chineseToEnglish(t.traditional, t.pinyin, t.definition))
-	if t.traditional != t.simplified { // don't duplicate triggers (same characters, doesn't affect UX)
-		lines = append(lines, chineseToEnglish(t.simplified, t.pinyin, t.definition))
-	}
+	// Chinese->English doesn't work at the moment, so we won't generate these https://github.com/federico-terzi/espanso/issues/101
+	//lines = append(lines, chineseToEnglish(t.traditional, t.pinyin, t.definition))
+	//if t.traditional != t.simplified { // don't duplicate triggers (same characters, doesn't affect UX)
+	//	lines = append(lines, chineseToEnglish(t.simplified, t.pinyin, t.definition))
+	//}
 
 	// ignore lengthy English definitions - users won't type long en->zh sentences
 	if strings.Count(t.definition, " ") < 2 {
