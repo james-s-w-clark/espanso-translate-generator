@@ -36,7 +36,7 @@ func main() {
 			continue
 		}
 
-		lineToTranslation("桌子 桌子 [zhuo1 zi5] /table/desk/CL:張|张[zhang1],套[tao4]/")
+		//lineToTranslation("桌子 桌子 [zhuo1 zi5] /table/desk/CL:張|张[zhang1],套[tao4]/")
 
 		translation := lineToTranslation(line)
 		if !mostFrequentWords[translation.simplified] {
@@ -152,22 +152,21 @@ func accentPinyinTones(pinyin string) string {
 	var accented []string
 
 	for _, syllable := range syllables {
-		tone, _ := strconv.ParseInt(syllable[len(syllable)-1:], 0, 32)
-		if tone == 0 {
-			accented = append(accented, syllable) // e.g. syllable is "P", no tone mark
-			continue
-		}
-
-		accented = append(accented, accentSyllable(syllable, tone))
+		accented = append(accented, accentSyllable(syllable))
 	}
 
 	return strings.Join(accented, " ")
 }
 
-func accentSyllable(syllable string, tone int64) string {
-	tmp1 := strings.ReplaceAll(syllable, "u:", "ü") // TODO DO THESE EVEN IF TONE 0
-	tmp2 := strings.ReplaceAll(tmp1, "U:", "Ü")
-	tmp3 := tmp2[:len(tmp2)-1] // we can ignore the number at the end now that we've extracted it
+func accentSyllable(syllable string) string {
+	tone, _ := strconv.ParseInt(syllable[len(syllable)-1:], 0, 32)
+
+	tmp1 := strings.ReplaceAll(syllable, "u:", "ü")
+	tmp2 := tmp1[:len(tmp1)-1] // we can ignore the number at the end now that we've extracted it
+
+	if tone == 0 {
+		return syllable // e.g. syllable is "P", no tone mark - just return the syllable
+	}
 
 	if strings.Index(syllable, "r") == 0 &&
 		strings.LastIndex(syllable, "r") == 0 {
@@ -175,12 +174,12 @@ func accentSyllable(syllable string, tone int64) string {
 	}
 
 	if strings.Contains(syllable, "iu") {
-		return strings.ReplaceAll(tmp3, "u", toneMap["u"][tone-1])
+		return strings.ReplaceAll(tmp2, "u", toneMap["u"][tone-1])
 	}
 
 	for _, vowel := range vowels {
 		if strings.Contains(syllable, vowel) {
-			return strings.ReplaceAll(tmp3, vowel, toneMap[vowel][tone-1])
+			return strings.ReplaceAll(tmp2, vowel, toneMap[vowel][tone-1])
 		}
 	}
 
