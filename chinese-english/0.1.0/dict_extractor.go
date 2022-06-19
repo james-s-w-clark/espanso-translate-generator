@@ -56,12 +56,14 @@ func main() {
 			configLines = append(configLines, chineseToEnglish(simplified, pinyin, definition))
 		}
 
-		// ignore lengthy English definitions (anything with a space)
-		// it's unlikely users will be typing long definition sentences
-		// TODO optimise and break the trigger pattern a bit? trad/simp same -> match on just :zh ?
+		// ignore lengthy English definitions (anything with a space) - users may not type long en->zh sentences
 		if strings.Count(definition, " ") < 2 {
-			configLines = append(configLines, englishToChinese(definition, traditional, pinyin, "t"))
-			configLines = append(configLines, englishToChinese(definition, simplified, pinyin, "s"))
+			if traditional == simplified { // small optimisation - but may type extra "s/t". users may dislike behaviour?
+				configLines = append(configLines, englishToChinese(definition, traditional, pinyin, ""))
+			} else {
+				configLines = append(configLines, englishToChinese(definition, traditional, pinyin, "t"))
+				configLines = append(configLines, englishToChinese(definition, simplified, pinyin, "s"))
+			}
 		}
 	}
 
