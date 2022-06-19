@@ -36,6 +36,8 @@ func main() {
 			continue
 		}
 
+		lineToTranslation("桌子 桌子 [zhuo1 zi5] /table/desk/CL:張|张[zhang1],套[tao4]/")
+
 		translation := lineToTranslation(line)
 		if !mostFrequentWords[translation.simplified] {
 			continue
@@ -163,7 +165,7 @@ func accentPinyinTones(pinyin string) string {
 }
 
 func accentSyllable(syllable string, tone int64) string {
-	tmp1 := strings.ReplaceAll(syllable, "u:", "ü")
+	tmp1 := strings.ReplaceAll(syllable, "u:", "ü") // TODO DO THESE EVEN IF TONE 0
 	tmp2 := strings.ReplaceAll(tmp1, "U:", "Ü")
 	tmp3 := tmp2[:len(tmp2)-1] // we can ignore the number at the end now that we've extracted it
 
@@ -189,9 +191,9 @@ var toneMap = map[string][]string{
 	"a": {"ā", "á", "ǎ", "à", "a"},
 	"e": {"ē", "é", "ě", "è", "e"},
 	"i": {"ī", "í", "ǐ", "ì", "i"},
-	"o": {"ē", "é", "ě", "è", "e"},
+	"o": {"ō", "ó", "ǒ", "ò", "o"},
 	"u": {"ū", "ú", "ǔ", "ù", "u"},
 	"ü": {"ǖ", "ǘ", "ǚ", "ǜ", "ü"},
 }
 
-var vowels = []string{"a", "o", "e", "i", "u", "ü"}
+var vowels = []string{"a", "o", "e", "i", "u", "ü"} // order is important, don't change
