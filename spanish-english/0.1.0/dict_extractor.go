@@ -45,6 +45,8 @@ func main() {
 		l1Word = strings.TrimSpace(l1Word)
 
 		l2Word := parts[l2Index]
+		l2Word = strings.ReplaceAll(l2Word, "\"", "'")
+		l2Word = strings.ReplaceAll(l2Word, "\\", "") // Espanso isn't happy with this character, \
 		configLines = append(configLines, pairToEspanso(l1Word, l2Word, l2))
 	}
 
